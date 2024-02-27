@@ -23,13 +23,13 @@ jobs:
         run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
       - name: Push App
         run: |
-          docker tag system-app-prod:hot ghcr.io/imeshsalpage/app && docker push ghcr.io/imeshsalpage/app
-          docker tag system-app-prod:hot ghcr.io/imeshsalpage/app:$GITHUB_REF_NAME && docker push ghcr.io/imeshsalpage/app:$GITHUB_REF_NAME     
+          docker tag system-app-prod:hot ghcr.io/ImeshMadhuranga/app && docker push ghcr.io/ImeshMadhuranga/app
+          docker tag system-app-prod:hot ghcr.io/ImeshMadhuranga/app:$GITHUB_REF_NAME && docker push ghcr.io/ImeshMadhuranga/app:$GITHUB_REF_NAME     
       - name: Push Proxy
         run: |
-          docker tag system-proxy-prod:hot ghcr.io/imeshsalpage/proxy && docker push ghcr.io/imeshsalpage/proxy
-          docker tag system-proxy-prod:hot ghcr.io/imeshsalpage/proxy:$GITHUB_REF_NAME && docker push ghcr.io/imeshsalpage/proxy:$GITHUB_REF_NAME
+          docker tag system-proxy-prod:hot ghcr.io/ImeshMadhuranga/proxy && docker push ghcr.io/ImeshMadhuranga/proxy
+          docker tag system-proxy-prod:hot ghcr.io/ImeshMadhuranga/proxy:$GITHUB_REF_NAME && docker push ghcr.io/ImeshMadhuranga/proxy:$GITHUB_REF_NAME
       - name: Push Static
         run: |
-          docker tag system-static-prod:hot ghcr.io/imeshsalpage/static && docker push ghcr.io/imeshsalpage/static
-          docker tag system-static-prod:hot ghcr.io/imeshsalpage/static:$GITHUB_REF_NAME && docker push ghcr.io/imeshsalpage/static:$GITHUB_REF_NAME
+          docker tag system-static-prod:hot ghcr.io/ImeshMadhuranga/static && docker push ghcr.io/ImeshMadhuranga/static
+          docker tag system-static-prod:hot ghcr.io/ImeshMadhuranga/static:$GITHUB_REF_NAME && docker push ghcr.io/ImeshMadhuranga/static:$GITHUB_REF_NAME
