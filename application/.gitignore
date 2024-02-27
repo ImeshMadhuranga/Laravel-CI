@@ -1,0 +1,11 @@
+/vendor
+yarn.lock
+/.history
+.env
+storage/framework
+storage/debugbar
+storage/logs
+storage/dotenv-editor
+!storage/app/bugfixer/
+.vscode
+/node_modules

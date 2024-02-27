@@ -1,0 +1,85 @@
+/** find.css **/
+.title {
+  margin-bottom: 5px;
+}
+
+.back {
+  background-color: #F6F7FC;
+  border-color: white;
+}
+
+.p-color {
+  margin-bottom: 5px;
+  font-size: 13px;
+  color: #4d4d4d;
+
+}
+
+.job-image {
+  height: 80px;
+  width: 80px;
+}
+
+.date-color {
+  background-color: #f2f2f2;
+  padding: 1px;
+  padding-right: 10px;
+  border-radius: 3px;
+}
+
+.card:hover {
+  box-shadow: 5px 5px 10px rgb(0 0 0 / 10%) !important;
+}
+
+.card {
+  border: inherit;
+  box-shadow: 5px 5px 10px rgb(0 0 0 / 10%);
+  border-color: inherit !important;
+  border-radius: 6px;
+  transition: 0.3s;
+
+}
+
+.verfied {
+  height: 20px;
+  width: 20px;
+}
+
+.blog-home-main-block {
+  height: 100px;
+  padding: 15px 15px;
+  font-size: 40px;
+  color: white;
+
+}
+
+.company-image {
+  border-radius: 50%;
+  height: 80px;
+  width: 80px;
+}
+
+.submit_button {
+  height: 30px;
+  border-radius: 6px;
+  background-color: var(--background-blue-bg-color);
+  border: var(--background-blue-bg-color);
+  color: #FFF;
+  padding: 0 15px;
+  float: right;
+}
+
+.search-job-main-block {
+  background-color: #F6F7FC;
+  padding: 50px 0;
+}
+
+.search-title {
+  margin-bottom: 0;
+  margin-top: 7px;
+}
+
+.location-name {
+  margin-bottom: 12px;
+  font-size: 13px;
+}
