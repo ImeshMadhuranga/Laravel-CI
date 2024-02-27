@@ -2,10 +2,10 @@
 
 namespace App\Console;
 
+use App\Console\Commands\GenerateSiteMap;
 use Illuminate\Console\Scheduling\Schedule;
+use App\Console\Commands\PlanExpirationMailCommand;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
-use App\Console\Commands\RenameVideo;
-use App\Console\Commands\ReplaceFiles;
 
 class Kernel extends ConsoleKernel
 {
@@ -15,32 +15,22 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        \Torann\Currency\Console\Update::class,
-        \Torann\Currency\Console\Cleanup::class,
-        \Torann\Currency\Console\Manage::class,
-        RenameVideo::class,
-        Commands\DatabaseBackUp::class,
-        ReplaceFiles::class,
+        GenerateSiteMap::class,
     ];
 
     /**
      * Define the application's command schedule.
-     *
-     * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
-     * @return void
      */
-    protected function schedule(Schedule $schedule)
+    protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
+        $schedule->command('sitemap:generate')->daily();
+        $schedule->command(PlanExpirationMailCommand::class)->daily();
     }
 
     /**
      * Register the commands for the application.
-     *
-     * @return void
      */
-    protected function commands()
+    protected function commands(): void
     {
         $this->load(__DIR__.'/Commands');
 

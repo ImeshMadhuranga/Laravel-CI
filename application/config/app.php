@@ -1,5 +1,8 @@
 <?php
 
+use Illuminate\Support\Facades\Facade;
+use Illuminate\Support\ServiceProvider;
+
 return [
 
     /*
@@ -28,10 +31,6 @@ return [
 
     'env' => env('APP_ENV', 'production'),
 
-    'version' => '5.5',
-
-    'demolock' => '0',
-
     /*
     |--------------------------------------------------------------------------
     | Application Debug Mode
@@ -43,7 +42,7 @@ return [
     |
     */
 
-    'debug' => env('APP_DEBUG', false),
+    'debug' => (bool) env('APP_DEBUG', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -58,7 +57,19 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'media_disc' => env('MEDIA_DISK', 'public'),
+
     'asset_url' => env('ASSET_URL', null),
+
+    'google_client_id' => env('GOOGLE_CLIENT_ID'),
+    'google_client_secret' => env('GOOGLE_CLIENT_SECRET'),
+    'google_redirect' => env('GOOGLE_REDIRECT'),
+
+    'facebook_app_id' => env('FACEBOOK_APP_ID'),
+    'facebook_app_secret' => env('FACEBOOK_APP_SECRET'),
+    'facebook_redirect' => env('FACEBOOK_REDIRECT'),
+    'upgrade_mode' => env('UPGRADE_MODE'),
+    'mail_admin' => env('MAIL_ADMIN'),
 
     /*
     |--------------------------------------------------------------------------
@@ -129,6 +140,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Maintenance Mode Driver
+    |--------------------------------------------------------------------------
+    |
+    | These configuration options determine the driver used to determine and
+    | manage Laravel's "maintenance mode" status. The "cache" driver will
+    | allow maintenance mode to be controlled across multiple machines.
+    |
+    | Supported drivers: "file", "cache"
+    |
+    */
+
+    'maintenance' => [
+        'driver' => 'file',
+        // 'store'  => 'redis',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Autoloaded Service Providers
     |--------------------------------------------------------------------------
     |
@@ -138,77 +167,29 @@ return [
     |
     */
 
-    'providers' => [
-
-        /*
-         * Laravel Framework Service Providers...
-         */
-        Illuminate\Auth\AuthServiceProvider::class,
-        Illuminate\Broadcasting\BroadcastServiceProvider::class,
-        Illuminate\Bus\BusServiceProvider::class,
-        Illuminate\Cache\CacheServiceProvider::class,
-        Illuminate\Foundation\Providers\ConsoleSupportServiceProvider::class,
-        Illuminate\Cookie\CookieServiceProvider::class,
-        Illuminate\Database\DatabaseServiceProvider::class,
-        Illuminate\Encryption\EncryptionServiceProvider::class,
-        Illuminate\Filesystem\FilesystemServiceProvider::class,
-        Illuminate\Foundation\Providers\FoundationServiceProvider::class,
-        Illuminate\Hashing\HashServiceProvider::class,
-        Illuminate\Mail\MailServiceProvider::class,
-        Illuminate\Notifications\NotificationServiceProvider::class,
-        Illuminate\Pagination\PaginationServiceProvider::class,
-        Illuminate\Pipeline\PipelineServiceProvider::class,
-        Illuminate\Queue\QueueServiceProvider::class,
-        Illuminate\Redis\RedisServiceProvider::class,
-        Illuminate\Auth\Passwords\PasswordResetServiceProvider::class,
-        Illuminate\Session\SessionServiceProvider::class,
-        Illuminate\Translation\TranslationServiceProvider::class,
-        Illuminate\Validation\ValidationServiceProvider::class,
-        Illuminate\View\ViewServiceProvider::class,
-        Tohidplus\Translation\TranslationServiceProvider::class,
-
-        
-
+    'providers' => ServiceProvider::defaultProviders()->merge([
+        Spatie\Permission\PermissionServiceProvider::class,
+        LaravelQRCode\Providers\QRCodeServiceProvider::class,
+        Biscolab\ReCaptcha\ReCaptchaServiceProvider::class,
+        Unicodeveloper\Paystack\PaystackServiceProvider::class,
 
         /*
          * Package Service Providers...
          */
-        Intervention\Image\ImageServiceProvider::class,
-        DevMarketer\EasyNav\EasyNavServiceProvider::class,
-        Laravel\Socialite\SocialiteServiceProvider::class,
-        Cartalyst\Stripe\Laravel\StripeServiceProvider::class,
-        Unicodeveloper\Paystack\PaystackServiceProvider::class,
-        Anand\LaravelPaytmWallet\PaytmWalletServiceProvider::class,
-        Laravolt\Avatar\ServiceProvider::class,
-        Revolution\Socialite\Amazon\AmazonServiceProvider::class,
-        Anhskohbo\NoCaptcha\NoCaptchaServiceProvider::class,
-        SmoDav\Mpesa\Laravel\ServiceProvider::class,
-        Jorenvh\Share\Providers\ShareServiceProvider::class,
-        RealRashid\SweetAlert\SweetAlertServiceProvider::class,
-        KingFlamez\Rave\RaveServiceProvider::class,
-        Vimeo\Laravel\VimeoServiceProvider::class,
-        Alaouy\Youtube\YoutubeServiceProvider::class,
-        niklasravnsborg\LaravelPdf\PdfServiceProvider::class,
-        NotificationChannels\OneSignal\OneSignalServiceProvider::class,
-        Jackiedo\DotenvEditor\DotenvEditorServiceProvider::class,
-        Shipu\Aamarpay\AamarpayServiceProvider::class,
-        PragmaRX\Google2FALaravel\ServiceProvider::class,
-        Torann\GeoIP\GeoIPServiceProvider::class,
+        Barryvdh\Debugbar\ServiceProvider::class,
+        Lab404\Impersonate\ImpersonateServiceProvider::class,
 
         /*
          * Application Service Providers...
          */
         App\Providers\AppServiceProvider::class,
         App\Providers\AuthServiceProvider::class,
-        // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-        Itskodinger\Midia\MidiaServiceProvider::class,
-        Yajra\DataTables\DataTablesServiceProvider::class,
-        Spatie\Permission\PermissionServiceProvider::class,
-        SimpleSoftwareIO\QrCode\QrCodeServiceProvider::class,
-        Jorenvh\Share\Providers\ShareServiceProvider::class,
-         ],
+        App\Providers\TenancyServiceProvider::class,
+        Mariuzzo\LaravelJsLocalization\LaravelJsLocalizationServiceProvider::class,
+        Rap2hpoutre\LaravelLogViewer\LaravelLogViewerServiceProvider::class,
+    ])->toArray(),
 
     /*
     |--------------------------------------------------------------------------
@@ -221,9 +202,15 @@ return [
     |
     */
 
+    //    'aliases' => Facade::defaultAliases()->merge([
+    //        'Datatables' => \Yajra\DataTables\Facades\DataTables::class,
+    //        'Debugbar' => Barryvdh\Debugbar\Facade::class,
+    //    ])->toArray(),
+
     'aliases' => [
 
         'App' => Illuminate\Support\Facades\App::class,
+        'Arr' => Illuminate\Support\Arr::class,
         'Artisan' => Illuminate\Support\Facades\Artisan::class,
         'Auth' => Illuminate\Support\Facades\Auth::class,
         'Blade' => Illuminate\Support\Facades\Blade::class,
@@ -233,67 +220,38 @@ return [
         'Config' => Illuminate\Support\Facades\Config::class,
         'Cookie' => Illuminate\Support\Facades\Cookie::class,
         'Crypt' => Illuminate\Support\Facades\Crypt::class,
+        'Date' => Illuminate\Support\Facades\Date::class,
         'DB' => Illuminate\Support\Facades\DB::class,
         'Eloquent' => Illuminate\Database\Eloquent\Model::class,
         'Event' => Illuminate\Support\Facades\Event::class,
         'File' => Illuminate\Support\Facades\File::class,
         'Gate' => Illuminate\Support\Facades\Gate::class,
         'Hash' => Illuminate\Support\Facades\Hash::class,
+        'Http' => Illuminate\Support\Facades\Http::class,
+        'Js' => Illuminate\Support\Js::class,
         'Lang' => Illuminate\Support\Facades\Lang::class,
         'Log' => Illuminate\Support\Facades\Log::class,
         'Mail' => Illuminate\Support\Facades\Mail::class,
         'Notification' => Illuminate\Support\Facades\Notification::class,
         'Password' => Illuminate\Support\Facades\Password::class,
         'Queue' => Illuminate\Support\Facades\Queue::class,
+        'RateLimiter' => Illuminate\Support\Facades\RateLimiter::class,
         'Redirect' => Illuminate\Support\Facades\Redirect::class,
-        'Redis' => Illuminate\Support\Facades\Redis::class,
+        // 'Redis' => Illuminate\Support\Facades\Redis::class,
         'Request' => Illuminate\Support\Facades\Request::class,
         'Response' => Illuminate\Support\Facades\Response::class,
         'Route' => Illuminate\Support\Facades\Route::class,
         'Schema' => Illuminate\Support\Facades\Schema::class,
         'Session' => Illuminate\Support\Facades\Session::class,
         'Storage' => Illuminate\Support\Facades\Storage::class,
+        'Str' => Illuminate\Support\Str::class,
         'URL' => Illuminate\Support\Facades\URL::class,
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
-        'Image' => Intervention\Image\Facades\Image::class,
-        'Nav' => DevMarketer\EasyNav\EasyNavFacade::class,
-        'Socialite' => Laravel\Socialite\Facades\Socialite::class,
-        'Stripe' => Cartalyst\Stripe\Laravel\Facades\Stripe::class,
+        // 'QRCode'    => LaravelQRCode\Facades\QRCode::class,
+        //'QRCode'       => SimpleSoftwareIO\QrCode\Facades\QrCode::class,
+        'ReCaptcha' => Biscolab\ReCaptcha\Facades\ReCaptcha::class,
         'Paystack' => Unicodeveloper\Paystack\Facades\Paystack::class,
-        'PaytmWallet' => Anand\LaravelPaytmWallet\Facades\PaytmWallet::class,
-        'Avatar'    => Laravolt\Avatar\Facade::class,
-        'NoCaptcha' => Anhskohbo\NoCaptcha\Facades\NoCaptcha::class,
-        'STK'       => SmoDav\Mpesa\Laravel\Facades\STK::class,
-        'Simulate'  => SmoDav\Mpesa\Laravel\Facades\Simulate::class,
-        'Registrar' => SmoDav\Mpesa\Laravel\Facades\Registrar::class,
-        'Identity'  => SmoDav\Mpesa\Laravel\Facades\Identity::class,
-        'Share' => Jorenvh\Share\ShareFacade::class,
-        'Alert' => RealRashid\SweetAlert\Facades\Alert::class,
-        'Rave' => KingFlamez\Rave\Facades\Rave::class,
-        'Tracker' => App\Helpers\Tracker::class,
-        'Vimeo' => Vimeo\Laravel\Facades\Vimeo::class,
-        'Youtube' => Alaouy\Youtube\Facades\Youtube::class,
-        'PDF' => niklasravnsborg\LaravelPdf\Facades\Pdf::class,
-        'DotenvEditor' => Jackiedo\DotenvEditor\Facades\DotenvEditor::class,
-        'Aamarpay'   =>  Shipu\Aamarpay\Facades\Aamarpay::class,
-        'Google2FA' => PragmaRX\Google2FALaravel\Facade::class,
-        'GeoIP' => \Torann\GeoIP\Facades\GeoIP::class,
-        'QrCode' => SimpleSoftwareIO\QrCode\Facades\QrCode::class,
-        'Share' => Jorenvh\Share\ShareFacade::class,
-
     ],
-
-
-    'debug_blacklist' => [
-        '_COOKIE' => array_keys($_COOKIE),
-        '_SERVER' => array_keys($_SERVER),
-        '_ENV' => array_keys($_ENV),
-        '_POST' => [
-            'password',
-        ],      
-    ],
-
-
 
 ];

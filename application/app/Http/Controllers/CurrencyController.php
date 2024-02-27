@@ -2,54 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Currency;
-use Session;
-use Spatie\Permission\Models\Role;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
 
-class CurrencyController extends Controller
+class CurrencyController extends AppBaseController
 {
-    public function __construct()
+    /**
+     * @return Application|Factory|View
+     */
+    public function index(): \Illuminate\View\View
     {
-    
-        $this->middleware('permission:currency.view', ['only' => ['show']]);
-        
-        $this->middleware('permission:currency.edit', ['only' => ['update']]);
-        
-    
+        return view('sadmin.currencies.index');
     }
-    public function show()
-    {
-
-    	$show = Currency::first();
-    	return view('admin.currency.edit',compact('show'));
-    }
-
-    public function update(Request $request)
-    {
-
-    	$data = Currency::first();
-        $input = $request->all();
-
-        if(isset($data))
-        {
-            $data->update($input);
-        }
-        else
-        {
-            $data = Currency::create($input);
-            $data->save();
-        }
-
-		return back()->with('success',trans('flash.UpdatedSuccessfully'));
-    }
-
-
-    public function CurrencySwitch($currency)
-    {
-        Session::put('changed_currency', $currency);
-        return back();
-    }
-
-    
 }

@@ -1,59 +1,29 @@
 <?php
+
 namespace Database\Seeders;
 
+use App\Models\Setting;
 use Illuminate\Database\Seeder;
 
 class SettingsTableSeeder extends Seeder
 {
-
     /**
-     * Auto generated seed file
-     *
-     * @return void
+     * Run the database seeds.
      */
-    public function run()
+    public function run(): void
     {
-        
+        $appLogoUrl = ('/assets/images/infyom-logo.png');
+        $faviconUrl = ('/web/media/logos/favicon-infyom.png');
 
-        \DB::table('settings')->delete();
-        
-        \DB::table('settings')->insert(array (
-            0 => 
-            array (
-                'id' => 1,
-                'project_title' => 'eClass - Learning Management System',
-                'logo' => 'logo.png',
-                'favicon' => 'favicon.png',
-                'cpy_txt' => 'Copyright © 2022 eClass.',
-                'logo_type' => 'L',
-                'rightclick' => 0,
-                'inspect' => 0,
-                'meta_data_desc' => NULL,
-                'meta_data_keyword' => NULL,
-                'google_ana' => NULL,
-                'fb_pixel' => NULL,
-                'fb_login_enable' => 1,
-                'google_login_enable' => 1,
-                'gitlab_login_enable' => 1,
-                'stripe_enable' => 1,
-                'instamojo_enable' => 1,
-                'paypal_enable' => 1,
-                'paytm_enable' => 1,
-                'braintree_enable' => 0,
-                'razorpay_enable' => 1,
-                'paystack_enable' => 1,
-                'w_email_enable' => 1,
-                'verify_enable' => 0,
-                'wel_email' => 'admin@mediacity.co.in',
-                'default_address' => 'Comapny 12345 South Main Street Anywhere',
-                'default_phone' => '9123456789',
-                'instructor_enable' => 1,
-                'debug_enable' => 1,
-                'created_at' => NULL,
-                'updated_at' => '2020-02-06 10:24:31',
-            ),
-        ));
-        
-        
+        Setting::create(['key' => 'app_name', 'value' => 'InfyVCards-SaaS']);
+        Setting::create(['key' => 'app_logo', 'value' => $appLogoUrl]);
+        Setting::create(['key' => 'favicon', 'value' => $faviconUrl]);
+        Setting::create(['key' => 'email', 'value' => 'vcards@gmail.com']);
+        Setting::create(['key' => 'phone', 'value' => '9876543210']);
+        Setting::create(['key' => 'address',
+            'value' => 'C-303, Atlanta Shopping Mall, Nr. Sudama Chowk, Mota Varachha, Surat - 394101, Gujarat, India.',
+        ]);
+        Setting::create(['key' => 'prefix_code', 'value' => '91']);
+        Setting::create(['key' => 'plan_expire_notification', 'value' => '5']);
     }
 }

@@ -2,13 +2,14 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Vcard;
 use Illuminate\Console\Command;
 use Spatie\Sitemap\SitemapGenerator;
 
-class GenerateSitemap extends Command
+class GenerateSiteMap extends Command
 {
     /**
-     * The console command name.
+     * The name and signature of the console command.
      *
      * @var string
      */
@@ -19,17 +20,26 @@ class GenerateSitemap extends Command
      *
      * @var string
      */
-    protected $description = 'Generate the sitemap.';
+    protected $description = 'Generate a site map for your vcard view urls';
 
     /**
      * Execute the console command.
-     *
-     * @return mixed
      */
-    public function handle()
+    public function handle(): void
     {
-        // modify this to your own needs
-        SitemapGenerator::create(config('app.url'))
-            ->writeToFile(public_path('sitemap.xml'));
+        $content = 'Sitemap: '.config('app.url').'/sitemap.xml
+User-agent: *
+Disallow:';
+
+        file_put_contents(public_path('robots.txt'), $content);
+
+        $activeVcard = Vcard::where('status', true)->pluck('url_alias', 'id')->toArray();
+
+        $sitemap = SitemapGenerator::create(config('app.url'))->getSitemap();
+
+        foreach ($activeVcard as $value) {
+            $sitemap->add(route('vcard.show', ['alias' => $value]))
+                ->writeToFile(public_path('sitemap.xml'));
+        }
     }
 }

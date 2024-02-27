@@ -2,74 +2,127 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AffiliateUser;
+use App\Models\Plan;
+use App\Models\Setting;
+use App\Models\Subscription;
+use App\Models\Transaction;
+use App\Utils\ResponseUtil;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Redirect;
-use App\Http\Requests;
-use App\Http\Controllers\Controller;
-use Paystack;
-use DB;
-use Auth;
-use App\Cart;
-use App\Wishlist;
-use App\Order;
-use App\Currency;
-use Mail;
-use App\Mail\SendOrderMail;
-use App\Notifications\UserEnroll;
-use App\Course;
-use App\User;
-use Notification;
-use Carbon\Carbon;
-use App\InstructorSetting;
-use App\PendingPayout;
-use Session;
-use App\Mail\AdminMailOnOrder;
-use TwilioMsg;
-use App\Setting;
+use App\Repositories\SubscriptionRepository;
+use AWS\CRT\HTTP\Response;
+use Exception;
+use GeoIp2\Exception\HttpException;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
+use Laracasts\Flash\Flash;
+use Stripe\Exception\ApiErrorException;
+use Unicodeveloper\Paystack\Facades\Paystack;
 
-class PayStackController extends Controller
+class PaystackController extends AppBaseController
 {
-    /**
-     * Redirect the User to Paystack Payment Page
-     * @return Url
-     */
-    public function redirectToGateway()
+    private SubscriptionRepository $subscriptionRepository;
+
+    public function __construct(SubscriptionRepository $subscriptionRepository)
     {
-        try{
-            return Paystack::getAuthorizationUrl()->redirectNow();
-        }catch(\Exception $ex){
-            
-            \Session::flash('delete', $ex->getMessage());
-            return redirect('all/cart');
-            
-        }
+        $this->subscriptionRepository = $subscriptionRepository;
     }
 
-    /**
-     * Obtain Paystack payment information
-     * @return void
-     */
-    public function handleGatewayCallback()
+    public function redirectToGateway(Request  $request)
+     {
+        $clientId = getSelectedPaymentGateway('paystack_key');
+        $clientSecret = getSelectedPaymentGateway('paystack_secret');
+        config([
+            'paystack.publicKey' => $clientId,
+            'paystack.secretKey' => $clientSecret,
+            'paystack.paymentUrl' => "https://api.paystack.co",
+            'paystack.merchantEmail' => 'krupalinfyom@gmail.com',
+        ]);
+            $supportedCurrency = ['NGN', 'USD', 'GHS', 'ZAR', 'KES'];
+            $plan = Plan::with('currency')->findOrFail($request->planId);
+
+        if ($plan->currency->currency_code != null && !in_array(strtoupper($plan->currency->currency_code), getPayStackSupportedCurrencies())) {
+            Flash::error(__('messages.placeholder.this_currency_is_not_supported_paystack'));
+            return Redirect()->back();
+        }
+        $data = $this->subscriptionRepository->manageSubscription($request->all());
+
+        if (!isset($data['plan'])) {
+            if (isset($data['status']) && $data['status'] == true) {
+                Flash::error(__('messages.subscription_pricing_plans.has_been_subscribed'));
+                return Redirect()->back();
+            } else {
+                if (isset($data['status']) && $data['status'] == false) {
+                    Flash::error(__('messages.placeholder.cannot_switch_to_zero'));
+                    return Redirect()->back();
+                }
+            }
+        }
+        $subscriptionsPricingPlan = $data['plan'];
+        $subscription = $data['subscription'];
+
+        try {
+            $request->merge([
+                'email' => $request->user()->email,
+                'orderID' => $subscription->id,
+                'amount' => $data['amountToPay'] * 100,
+                'quantity' => 1,
+                'currency' => $plan->currency->currency_code,
+                'reference' => Paystack::genTranxRef(),
+                'metadata' => json_encode(['subscription_id' => $subscription->id]),
+            ]);
+
+            return Paystack::getAuthorizationUrl()->redirectNow();
+        } catch (\Exception $e) {
+            Flash::error(__('messages.setting.paystack_credential'));
+            return Redirect()->back();
+        }
+
+    }
+
+    public function handleGatewayCallback(Request $request)
     {
-        $paymentDetails = Paystack::getPaymentData();
+        $clientId = getSelectedPaymentGateway('paystack_key');
+        $clientSecret = getSelectedPaymentGateway('paystack_secret');
+        config([
+            'paystack.publicKey' => $clientId,
+            'paystack.secretKey' => $clientSecret,
+            'paystack.paymentUrl' => "https://api.paystack.co",
+            'paystack.merchantEmail' => 'krupalinfyom@gmail.com',
+        ]);
+        $response = Paystack::getPaymentData();
+        $transactionID = $response['data']['id'];
+        $transactionAmount = $response['data']['requested_amount'] / 100;
+        $subscriptionId = $response['data']['metadata']['subscription_id'];
 
+        try {
+            Subscription::findOrFail($subscriptionId)->update(['status' => Subscription::ACTIVE]);
+            // De-Active all other subscription
+            Subscription::whereTenantId(getLogInTenantId())
+                ->where('id', '!=', $subscriptionId)
+                ->where('status', '!=', Subscription::REJECT)
+                ->update([
+                    'status' => Subscription::INACTIVE,
+                ]);
 
-        $paymentdata = $paymentDetails['data'];
-       
+            $transaction = Transaction::create([
+                'transaction_id' => $transactionID,
+                'type' => Transaction::PAYSTACK,
+                'amount' => $transactionAmount,
+                'status' => Subscription::ACTIVE,
+                'meta' => json_encode($response),
+            ]);
 
-        if($paymentDetails['status'] == 'true') {
+            // updating the transaction id on the subscription table
+            $subscription = Subscription::findOrFail($subscriptionId);
+            $subscription->update(['transaction_id' => $transaction->id]);
 
-            $txn_id = $paymentdata['reference'];
+            AffiliateUser::whereUserId(getLogInUserId())->withoutGlobalScopes()
+                ->update(['is_verified' => 1]);
 
-            $payment_method = 'Paystack';
-
-            $checkout = new OrderStoreController;
-
-            return $checkout->orderstore($txn_id, $payment_method);
-
-		}
-
-		\Session::flash('delete', trans('flash.PaymentFailed'));
-		    return redirect('/');
+            return view('sadmin.plans.payment.paymentSuccess');
+        } catch (HttpException $ex) {
+            print_r($ex->getMessage());
+        }
     }
 }

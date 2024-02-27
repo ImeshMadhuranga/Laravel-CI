@@ -2,389 +2,182 @@
 
 namespace App\Http\Controllers;
 
-use App\Language;
+use App\Http\Requests\CreateLanguageRequest;
+use App\Http\Requests\UpdateLanguageRequest;
+use App\Models\Language;
+use App\Models\User;
+use App\Repositories\LanguageRepository;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Session;
-use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\File;
+use Illuminate\View\View;
+use Laracasts\Flash\Flash;
+use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
-
-class LanguageController extends Controller
+class LanguageController extends AppBaseController
 {
-    public function __construct()
-    {
-    
-        $this->middleware('permission:site-settings.language.view', ['only' => ['index','showlang']]);
-        $this->middleware('permission:site-settings.language.create', ['only' => ['create', 'store']]);
-        $this->middleware('permission:site-settings.language.edit', ['only' => ['edit','update']]);
-        $this->middleware('permission:site-settings.language.delete', ['only' => ['destroy','bulk_delete']]);
-    
-    }
+    /** @var LanguageRepository */
+    private $languageRepository;
 
-   	/**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    public function __construct(LanguageRepository $languageRepo)
     {
-        $languages = Language::all();
-        return view('admin.language.index', compact('languages'));
+        $this->languageRepository = $languageRepo;
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Factory|View
      */
-    public function create()
+    public function index(): View
     {
-        return view('admin.language.create');
+        return view('sadmin.languages.index');
     }
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(CreateLanguageRequest $request): JsonResponse
     {
-
-        $request->validate([
-            'local' => 'required|unique:languages,local',
-            'name' => 'required'
-        ]);
-
-
-        
         $input = $request->all();
-
-        $all_def = Language::where('def','=',1)->get();
-
-        if (isset($request->def)) {
-
-            foreach ($all_def as $value) {
-                $remove_def =  Language::where('id','=',$value->id)->update(['def' => 0]);
-            }
-
-             $input['def'] = 1;
-
-        }else{
-            if($all_def->count()<1)
-            {
-                return back()->with('delete','Atleast one language need to set default !');
-            }
-
-            $input['def'] = 0;
+        $allLanguagesArr = [];
+        $languages = File::directories(base_path('lang'));
+        foreach ($languages as $language) {
+            $allLanguagesArr[] = substr($language, -2);
         }
 
-
-        if (!is_dir(base_path() . '/resources/lang/' . $request->local)) {
-            mkdir(base_path() . '/resources/lang/' . $request->local);
-            copy(base_path() . '/resources/lang/en/frontstaticword.php', base_path() . '/resources/lang/' . $request->local . '/staticwords.php');
-            copy(base_path() . '/resources/lang/en/adminstaticword.php', base_path() . '/resources/lang/' . $request->local . '/adminstaticwords.php');
+        if (in_array($input['iso_code'], $allLanguagesArr)) {
+            throw new UnprocessableEntityHttpException($input['iso_code'].' '.__('messages.placeholder.lang_already_exists'));
         }
-        if (is_dir(base_path() . '/resources/lang/')) {
-            copy(resource_path() . '/lang/en.json', resource_path() . '/lang/' . $request->local . '.json');
+
+        $language = $this->languageRepository->create($input);
+        if (isset($input['flag']) && ! empty($input['flag'])) {
+            $language->addMedia($input['flag'])->toMediaCollection(Language::LANGUAGE_PATH,
+                config('app.media_disc'));
         }
-        Language::create($input);
+        $translation = $this->languageRepository->translationFileCreate($language);
+        Artisan::call('lang:js');
 
-        Session::flash('success', trans('flash.AddedSuccessfully'));
-        return redirect('admin/lang');
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show()
-    {
-        //
+        return $this->sendResponse($language, __('messages.placeholder.language_save'));
     }
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Language $language): JsonResponse
     {
-        $language = Language::findOrFail($id);
-        return view('admin.language.edit', compact('language'));
+        return $this->sendResponse($language, 'Language retrieved successfully.');
     }
 
     /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * Show the form for editing the specified resource.
      */
-    public function update(Request $request, $id)
+    public function show(Language $language): JsonResponse
     {
-        $language = Language::findOrFail($id);
+        return $this->sendResponse($language, 'Language retrieved successfully.');
+    }
 
-        $all_def = Language::where('def','=',1)->get();
-
-
-        $this->validate($request, [
-            'local' => 'required|unique:languages,local,'.$id,
-            'name' => 'required',
-        ]);
-      
-
-
+    /**
+     * @param  Language  $language
+     */
+    public function update(UpdateLanguageRequest $request, $id): JsonResponse
+    {
+        $language = Language::whereId($id)->firstOrFail();
         $input = $request->all();
 
-        if (isset($request->def)) {
+        $this->languageRepository->updateLanguage($input, $language);
 
-            
-
-            foreach ($all_def as $value) {
-                $remove_def =  Language::where('id','=',$value->id)->update(['def' => 0]);
-            }
-
-             $input['def'] = 1;
-
-        }else{
-
-            if($all_def->count()<1)
-            {
-                return back()->with('delete','Atleast one language need to set default !');
-            }
-
-            $input['def'] = 0;
-        }
-
-        
-        $language->update($input);
-        
-        Session::flash('success', trans('flash.UpdatedSuccessfully'));
-        return redirect('admin/lang');
+        return $this->sendSuccess(__('messages.flash.language_update'));
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     *
+     * @throws \Exception
      */
-    public function destroy($id)
+    public function destroy(Language $language): JsonResponse
     {
-        $language = Language::findOrFail($id);
-        if($language->def ==1){
-             return back()->with('delete', trans('flash.CannotDeleteDefaultLanguage'));
-            
-        }else{
-
-             $language->delete();
-            return back()->with('delete', trans('flash.DeletedSuccessfully'));
+        if ($language->is_default == true) {
+            return $this->sendError('Default Language can\'t be deleted.');
         }
-        
+        $usesLang = User::whereIsActive(1)->pluck('language')->toArray();
+        if (in_array($language->iso_code, $usesLang)) {
+            return $this->sendError('Uses Language can\'t be deleted.');
+        }
+        if ($language->iso_code == getSuperAdminSettingValue('default_language')) {
+            return $this->sendError('Default Setting Language can\'t be deleted.');
+        }
+
+        $path = base_path('lang/').$language->iso_code;
+        if (\File::exists($path)) {
+            \File::deleteDirectory($path);
+            $language->delete();
+        } else {
+            return $this->sendError('Language not deleted.');
+        }
+        Artisan::call('lang:js');
+
+        return $this->sendSuccess('Language deleted successfully.');
     }
 
-    // This function performs bulk delete action
-   public function bulk_delete(Request $request)
-   {
-    
-          $validator = Validator::make($request->all(), ['checked' => 'required']);
-          if ($validator->fails()) {
-           return back()->with('error',trans('Please select field to be deleted.'));
-          }
-          Language::whereIn('id',$request->checked)->delete();
-          Session::flash('delete', trans('Selected item has been deleted successfully !'));
-          return redirect('admin/lang');
-         
-  }
-
-
-    public function showlang() 
+    /**
+     * @return Application|Factory|\Illuminate\Contracts\View\View|RedirectResponse
+     */
+    public function showTranslation(Language $language, Request $request)
     {
-        $languages = Language::all();
-        return view('admin.language.show', compact('languages'));
+        $selectedLang = $request->get('name', $language->iso_code);
+        $selectedFile = $request->get('file', 'messages.php');
+        $langExists = $this->languageRepository->checkLanguageExistOrNot($selectedLang);
+        if (! $langExists) {
+            return redirect()->back()->withErrors($selectedLang.' language not found.');
+        }
+
+        $fileExists = $this->languageRepository->checkFileExistOrNot($selectedLang, $selectedFile);
+        if (! $fileExists) {
+            return redirect()->back()->withErrors($selectedFile.' file not found.');
+        }
+        $oldLang = app()->getLocale();
+        $data = $this->languageRepository->getSubDirectoryFiles($selectedLang, $selectedFile);
+        $data['id'] = $language->id;
+        app()->setLocale($oldLang);
+
+        return view('sadmin.languages.translation-manager.index', compact('selectedLang', 'selectedFile'))->with($data);
     }
 
-    public function frontstaticword($local)
+    public function updateTranslation(Language $language, Request $request): RedirectResponse
     {
-         //return $local;
-        $findlang = Language::where('local', '=', $local)->first();
+        $lName = $language->iso_code;
+        $fileName = $request->get('file_name');
+        $fileExists = $this->languageRepository->checkFileExistOrNot($lName, $fileName);
 
-        if (isset($findlang))
-        {
-
-            if (file_exists(resource_path() .'/lang/' . $findlang->local . '/frontstaticword.php'))
-            {
-                $file = file_get_contents(resource_path() ."/lang/$findlang->local/frontstaticword.php");
-                return view('admin.language.frontstatic.frontstatic', compact('findlang', 'file'));
-            }
-            else
-            {
-
-                if (is_dir(resource_path() .'/lang/' . $findlang->local))
-                {
-                    copy(resource_path() . "/lang/en/frontstaticword.php", resource_path().'/lang/' . $findlang->local . '/frontstaticword.php');
-
-                    
-                    $file = file_get_contents(resource_path(). "/lang/$findlang->local/frontstaticword.php");
-                    return view('admin.language.frontstatic.frontstatic', compact('findlang', 'file'));
-                }
-                else
-                {
-                    mkdir(resource_path() .'/lang/' . $findlang->local);
-                    copy(resource_path() ."/lang/en/frontstaticword.php", resource_path() .'/lang/' . $findlang->local . '/frontstaticword.php');
-                    $file = file_get_contents(resource_path() ."/lang/$findlang->local/frontstaticword.php");
-                    return view('admin.language.frontstatic.frontstatic', compact('findlang', 'file'));
-                }
-
-            }
-
+        if (! $fileExists) {
+            return redirect()->back()->withErrors('File not found.');
         }
-        else
-        {
-            return back()
-                ->with('delete', trans('flash.NotFound'));
+
+        if (! empty($lName)) {
+            $result = $request->except(['_token', 'translate_language', 'file_name']);
+
+            File::put(base_path('lang/').$lName.'/'.$fileName, '<?php return '.var_export($result, true).'?>');
         }
+
+        Artisan::call('lang:js');
+
+        Flash::success(__('messages.flash.language_update'));
+
+        return redirect()->route('languages.translation', $language->id);
     }
 
-    public function frontupdate(Request $request, $local)
+    public function getAllLanguage()
     {
-        $findlang = Language::where('local', '=', $local)->first();
-        if (isset($findlang))
-        {
+        $getAllLanguage = Language::get();
+        $currentLanguage = getCurrentLanguageName();
 
-            $transfile = $request->transfile;
-            file_put_contents(resource_path() .'/lang/' . $findlang->local . '/frontstaticword.php', $transfile . PHP_EOL);
-            return back()->with('updated', trans('flash.UpdatedSuccessfully'));
-
-        }
-        else
-        {
-            return back()
-                ->with('delete', trans('flash.NotFound'));
-        }
+        return $this->sendResponse(['getAllLanguage' => $getAllLanguage, 'currentLanguage' => $currentLanguage],
+            'language retrieve successfully');
     }
-
-
-    public function adminstaticword($local)
-    {
-        $findlang = Language::where('local', '=', $local)->first();
-
-        if (isset($findlang))
-        {
-
-            if (file_exists(resource_path() .'/lang/' . $findlang->local . '/adminstaticword.php'))
-            {
-                $file = file_get_contents(resource_path() ."/lang/$findlang->local/adminstaticword.php");
-                return view('admin.language.adminstatic.adminstatic', compact('findlang', 'file'));
-            }
-            else
-            {
-
-                if (is_dir(resource_path() .'/lang/' . $findlang->local))
-                {
-                    copy(resource_path() ."/lang/en/adminstaticword.php", resource_path() .'/lang/' . $findlang->local . '/adminstaticword.php');
-                    $file = file_get_contents(resource_path() ."/lang/$findlang->local/adminstaticword.php");
-                    return view('admin.language.adminstatic.adminstatic', compact('findlang', 'file'));
-                }
-                else
-                {
-                    mkdir(resource_path() .'/lang/' . $findlang->local);
-                    copy(resource_path() ."/lang/en/adminstaticword.php", resource_path() .'/lang/' . $findlang->local . '/adminstaticword.php');
-                    $file = file_get_contents(resource_path() ."/lang/$findlang->local/adminstaticword.php");
-                    return view('admin.language.adminstatic.adminstatic', compact('findlang', 'file'));
-                }
-
-            }
-
-        }
-        else
-        {
-            return back()
-                ->with('delete', trans('flash.NotFound'));
-        }
-    }
-
-    public function adminupdate(Request $request, $local)
-    {
-        // return 'x';
-        $findlang = Language::where('local', '=', $local)->first();
-        if (isset($findlang))
-        {
-
-            $transfile = $request->transfile;
-            file_put_contents(resource_path() .'/lang/' . $findlang->local . '/adminstaticword.php', $transfile . PHP_EOL);
-            return back()->with('updated', trans('flash.UpdatedSuccessfully'));
-
-        }
-        else
-        {
-            return back()
-                ->with('delete', trans('flash.NotFound'));
-        }
-    }
-
-
-
-    public function flashmsgword($local)
-    {
-        $findlang = Language::where('local', '=', $local)->first();
-
-        if (isset($findlang))
-        {
-
-            if (file_exists(resource_path() .'/lang/' . $findlang->local . '/flash.php'))
-            {
-                $file = file_get_contents(resource_path() ."/lang/$findlang->local/flash.php");
-                return view('admin.language.flashmsg.flashmsg', compact('findlang', 'file'));
-            }
-            else
-            {
-
-                if (is_dir(resource_path() .'/lang/' . $findlang->local))
-                {
-                    copy(resource_path() ."/lang/en/flash.php", resource_path() .'/lang/' . $findlang->local . '/flash.php');
-                    $file = file_get_contents(resource_path() ."/lang/$findlang->local/flash.php");
-                    return view('admin.language.flashmsg.flashmsg', compact('findlang', 'file'));
-                }
-                else
-                {
-                    mkdir(resource_path() .'/lang/' . $findlang->local);
-                    copy(resource_path() ."/lang/en/flash.php", resource_path() .'/lang/' . $findlang->local . '/flash.php');
-                    $file = file_get_contents(resource_path() ."/lang/$findlang->local/flash.php");
-                    return view('admin.language.flashmsg.flashmsg', compact('findlang', 'file'));
-                }
-
-            }
-
-        }
-        else
-        {
-            return back()
-                ->with('delete', trans('flash.NotFound'));
-        }
-    }
-
-    public function flashupdate(Request $request, $local)
-    {
-        $findlang = Language::where('local', '=', $local)->first();
-        if (isset($findlang))
-        {
-
-            $transfile = $request->transfile;
-            file_put_contents(resource_path() .'/lang/' . $findlang->local . '/flash.php', $transfile . PHP_EOL);
-            return back()->with('updated', trans('flash.UpdatedSuccessfully'));
-
-        }
-        else
-        {
-            return back()
-                ->with('delete', trans('flash.NotFound'));
-        }
-    }
-
-  
 }

@@ -1,181 +1,110 @@
-@extends('theme.master')
-@section('title', 'Sign Up')
+@extends('layouts.auth')
+@section('title')
+    {{ __('messages.common.register') }}
+@endsection
 @section('content')
-@include('admin.message')
-<!-- Signup start-->
-<section id="signup" class="signup-block-main-block register-page">
-    <div class="container">
-        <div class="login-signup">
-            <div class="row no-gutters">
-                <div class="col-lg-6 col-md-6">
-                    <div class="signup-side-block">
-                        <img src="{{ url('images/login/login.png')}}" class="img-fluid" alt="">
-                        <div class="login-img">
-                            <img src="{{ url('/images/login/'.$gsetting->img) }}" class="img-fluid" alt="">
+    <div class="d-flex flex-column flex-column-fluid align-items-center justify-content-center p-4">
+        <div class="col-12 text-center">
+            <a href="{{ route('home') }}" class="image mb-7 mb-sm-10">
+                <img alt="Logo" src="{{ getLogoUrl() }}" class="img-fluid logo-fix-size">
+            </a>
+        </div>
+        <div class="width-540">
+            @include('layouts.errors')
+        </div>
+        <div class="bg-white rounded-15 shadow-md width-540 px-5 px-sm-7 py-10 mx-auto">
+            <h1 class="text-center mb-7">{{ __('messages.common.create_an_account') }}</h1>
+            <form method="POST"
+                action="{{ request()->input('referral-code') ? route('register') . '?referral-code=' . request()->input('referral-code') : route('register') }}"
+                id="UserRegisterForm" class="form-horizontal">
+                @csrf
+                <div class="row">
+                    <div class="col-md-6 mb-sm-7 mb-4">
+                        <label for="formInputFirstName" class="form-label">
+                            {{ __('messages.user.first_name') . ':' }}<span class="required"></span>
+                        </label>
+                        <input name="first_name" type="text" class="form-control" id="first_name"
+                            placeholder=" {{ __('messages.user.first_name') }}" aria-describedby="firstName"
+                            value="{{ old('first_name') }}" required>
+                    </div>
+                    <div class="col-md-6 mb-sm-7 mb-4">
+                        <label for="last_name" class="form-label">
+                            {{ __('messages.user.last_name') . ':' }}<span class="required"></span>
+                        </label>
+                        <input name="last_name" type="text" class="form-control" id="last_name"
+                            placeholder=" {{ __('messages.user.last_name') }}" aria-describedby="lastName" required
+                            value="{{ old('last_name') }}">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-sm-7 mb-4">
+                        <label for="email" class="form-label">
+                            {{ __('messages.user.email') . ':' }}<span class="required"></span>
+                        </label>
+                        <input name="email" type="email" class="form-control" id="email" aria-describedby="email"
+                            placeholder=" {{ __('messages.user.email') }}" value="{{ old('email') }}" required>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-sm-7 mb-4">
+                        <label for="password" class="form-label">
+                            {{ __('messages.user.password') . ':' }}<span class="required"></span>
+                        </label>
+                        <div class="mb-3 position-relative">
+                            <input type="password" name="password" class="form-control" id="password"
+                                placeholder=" {{ __('messages.user.password') }}" aria-describedby="password" required
+                                aria-label="Password" data-toggle="password">
+                            <span
+                                class="position-absolute d-flex align-items-center top-0 bottom-0 end-0 me-4 input-icon input-password-hide cursor-pointer text-gray-600">
+                                <i class="bi bi-eye-slash-fill"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-sm-7 mb-4">
+                        <label for="password_confirmation" class="form-label">
+                            {{ __('messages.user.confirm_password') . ':' }}<span class="required"></span>
+                        </label>
+                        <div class="mb-3 position-relative">
+                            <input name="password_confirmation" type="password" class="form-control"
+                                placeholder=" {{ __('messages.user.confirm_password') }}" id="password_confirmation"
+                                aria-describedby="confirmPassword" required aria-label="Password" data-toggle="password">
+                            <span
+                                class="position-absolute d-flex align-items-center top-0 bottom-0 end-0 me-4 input-icon input-password-hide cursor-pointer text-gray-600">
+                                <i class="bi bi-eye-slash-fill"></i>
+                            </span>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-6 col-md-6">
-                    <div class="signup-heading">
-                        
-                        {{ $gsetting->text }}
-
-                        <div class="signup-block">
-                            <form class="signup-form" method="POST" action="{{ route('register') }}">
-                                @csrf
-                                <div class="row">
-                                    <div class="col-lg-6">
-                                        <div class="form-group">
-                                            <i data-feather="user"></i>
-                                            <input type="text" class="form-control{{ $errors->has('fname') ? ' is-invalid' : '' }}" name="fname" value="{{ old('fname') }}" id="fname" placeholder="First Name">
-                                            @if ($errors->has('fname'))
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $errors->first('fname') }}</strong>
-                                                </span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-6">
-                                        <div class="form-group">
-                                            <i data-feather="user"></i>
-                                            <input type="text" class="form-control{{ $errors->has('lname') ? ' is-invalid' : '' }}" name="lname" value="{{ old('lname') }}" id="lname" placeholder="Last Name">
-                                            @if($errors->has('lname'))
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $errors->first('lname') }}</strong>
-                                                </span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-6">
-                                        <div class="form-group">
-                                            <i data-feather="mail"></i>
-                                            <input type="email" class="form-control{{ $errors->has('email') ? ' is-invalid' : '' }}" name="email" value="{{ old('email') }}" id="email" placeholder="Email">
-                                            @if($errors->has('email'))
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $errors->first('email') }}</strong>
-                                                </span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-6">
-                                        @if($gsetting->mobile_enable == 1)
-                                        <div class="form-group">
-                                            <i data-feather="phone"></i>
-                                            <input type="text" class="form-control{{ $errors->has('mobile') ? ' is-invalid' : '' }}" name="mobile" value="{{ old('mobile') }}" id="mobile" placeholder="Mobile">
-                                            @if($errors->has('mobile'))
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $errors->first('mobile') }}</strong>
-                                                </span>
-                                            @endif
-                                        </div>
-                                        @endif
-                                    </div>
-                                    <div class="col-lg-6">
-                                        <div class="form-group">
-                                            <i data-feather="lock"></i>
-                                            <input type="password" class="form-control{{ $errors->has('password') ? ' is-invalid' : '' }}" name="password" id="password" placeholder="Password">
-                                            <span toggle="#password" class="fa fa-fw fa-eye field-icon toggle-password"></span>
-                                            @if ($errors->has('password'))
-                                                <span class="invalid-feedback" role="alert">
-                                                    <strong>{{ $errors->first('password') }}</strong>
-                                                </span>
-                                            @endif
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-6">
-                                        <div class="form-group">
-                                            <i data-feather="lock"></i>
-                                            <span toggle="#password-confirm" class="fa fa-fw fa-eye field-icon toggle-password"></span>
-                                            <input id="password-confirm" type="password" class="form-control" name="password_confirmation" placeholder="Confirm Password" required>
-                                        </div>
-                                    </div>
-                                </div>
-                                @if($gsetting->captcha_enable == 1)
-                                <div class="{{ $errors->has('g-recaptcha-response') ? ' has-error' : '' }}">
-                                    <div class="text-center">
-                                        {!! app('captcha')->display() !!}
-                                        @if ($errors->has('g-recaptcha-response'))
-                                            <span class="help-block">
-                                                <strong>{{ $errors->first('g-recaptcha-response') }}</strong>
-                                            </span>
-                                        @endif
-                                    </div>
-                                </div>
-                                <br>
-                                <br>
-                                @endif
-                                
-                                <div class="form-group">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="term" id="term" required>
-
-                                        <label class="form-check-label" for="term">
-                                            <div class="signin-link text-center btm-20">
-                                                <b>{{ __('I agree to ') }}<a href="{{url('terms_condition')}}" title="Policy">{{ __('Terms&Condition') }} </a>, <a href="{{url('privacy_policy')}}" title="Policy">{{ __('PrivacyPolicy') }}.</a></b>
-                                            </div>
-                                        </label>
-                                    </div>
-                                </div>
-                                <button type="submit" title="Sign Up" class="btn btn-primary">{{ __('Signup') }}</button> 
-                                
-                            </form>
-                            <div class="social-link btm-10">
-                                <h2><span>Or Sign Up Using</span></h2>
-                                <div class="row">
-                                    @if($gsetting->fb_login_enable == 1)
-                                    <div class="col-lg-2 col-4">
-                                        <a href="{{ url('/auth/facebook') }}" target="_blank" title="facebook" class="social-icon facebook-icon" title="Facebook"><i class="fa fa-facebook"></i></a>
-                                    </div>
-                                    @endif       
-                                    @if($gsetting->google_login_enable == 1)
-                                    <div class="col-lg-2 col-4">
-                                        <div class="google">
-                                            <a href="{{ url('/auth/google') }}" target="_blank" title="google" class="social-icon google-icon" title="google"><i class="fab fa-google-plus-g"></i></a>
-                                        </div>
-                                    </div>
-                                    @endif
-                                    @if($gsetting->amazon_enable == 1)
-                                    <div class="col-lg-2 col-4">
-                                        <div class="signin-link amazon-button">
-                                            <a href="{{ url('/auth/amazon') }}" target="_blank" title="amazon" class="social-icon amazon-icon" title="Amazon"><i class="fab fa-amazon"></i></a>
-                                        </div>
-                                    </div>
-                                    @endif
-
-                                    @if($gsetting->linkedin_enable == 1)
-                                    <div class="col-lg-2 col-4"> 
-                                        <div class="signin-link linkedin-button">
-                                            <a href="{{ url('/auth/linkedin') }}" target="_blank" title="linkedin" class="social-icon linkedin-icon" title="Linkedin"><i class="fab fa-linkedin"></i></a>
-                                        </div>
-                                    </div>
-                                    @endif
-
-                                    @if($gsetting->twitter_enable == 1)
-                                    <div class="col-lg-2 col-4">
-                                        <div class="signin-link twitter-button">
-                                            <a href="{{ url('/auth/twitter') }}" target="_blank" title="twitter" class="social-icon twitter-icon" title="Twitter"><i class="fab fa-twitter"></i></a>
-                                        </div>
-                                    </div>
-                                    @endif
-
-                                    @if($gsetting->gitlab_login_enable == 1)
-                                    <div class="col-lg-2 col-4">
-                                        <div class="signin-link btm-10">
-                                            <a href="{{ url('/auth/gitlab') }}" target="_blank" title="gitlab" class="social-icon gitlab-icon" title="gitlab"><i class="fab fa-gitlab"></i></a>
-                                        </div>
-                                    </div>
-                                    @endif
-                                </div>  
-                            </div>
-                            <div class="sign-up text-center">{{ __('Alreadyhaveanaccount') }}?<a href="{{ route('login') }}" title="sign-up"> {{ __('Login') }}</a>
-                            </div>
-                        </div>
+                <div class="col-md-12 mb-sm-7 mb-4">
+                    <div class="form-check">
+                        <input type="checkbox" name="term_policy_check" class="form-check-input" id="privacyPolicyCheckbox"
+                            placeholder>
+                        <label class="form-check-label" for="privacyPolicyCheckbox">
+                            @lang('messages.by_signing_up_you_agree_to_our')
+                            <a href="{{ route('terms.conditions') }}" target="_blank"
+                                class="text-decoration-none link-info fs-6">{!! __('messages.vcard.term_condition') !!}</a>
+                            &
+                            <a href="{{ route('privacy.policy') }}" target="_blank"
+                                class="text-decoration-none link-info fs-6">{{ __('messages.vcard.privacy_policy') }}</a>
+                        </label>
                     </div>
                 </div>
-            </div>
+
+                @if(getSuperAdminSettingValue('captcha_enable'))
+                <div class="col-md-12 mb-sm-7 mb-4">
+                    {!! htmlFormSnippet() !!}
+                </div>
+                @endif
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">{{ __('messages.common.submit') }}</button>
+                </div>
+                <div class="d-flex align-items-center mt-4">
+                    <span class="text-gray-700 me-2">{{ __('messages.common.already_have_an_account') . '?' }}</span>
+                    <a href="{{ route('login') }}" class="link-info fs-6 text-decoration-none">
+                        {{ __('messages.common.sign_in_here') }}
+                    </a>
+                </div>
+            </form>
         </div>
     </div>
-</section>
-<!-- Signup end-->
-
 @endsection
