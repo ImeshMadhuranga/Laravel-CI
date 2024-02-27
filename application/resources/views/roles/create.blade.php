@@ -1,110 +1,39 @@
-@extends('admin.layouts.master')
-@section('title','Create a new role')
-@section('maincontent')
-<?php
-$data['heading'] = 'Create a new role';
-$data['title'] = 'Role';
-$data['title1'] = 'Create a new role';
-?>
-@include('admin.layouts.topbar',$data)
-<div class="contentbar">   
-    <div class="row">
-        <div class="col-lg-12">
-          <div class="card dashboard-card m-b-30">
-              <div class="card-header">
-                <div>
-                    <div class="widgetbar">
-                      <a href="{{route('roles.index')}}" class="float-right btn btn-primary-rgba mr-2"><i
-                          class="feather icon-arrow-left mr-2"></i>{{ __('Back') }}</a> </div>
+@extends('layouts.app')
+@section('title')
+    {{__('messages.role.new_role')}}
+@endsection
+@section('header_toolbar')
+    <div class="toolbar" >
+        <div  class="container-fluid d-flex flex-stack">
+            <div
+
+                 class="page-title d-flex align-items-center flex-wrap me-3 mb-5 mb-lg-0">
+                <h1 class="d-flex align-items-center text-dark fw-bolder fs-3 my-1">@yield('title')</h1>
+            </div>
+            <div class="d-flex align-items-center py-1 ms-auto">
+                <a href="{{ route('roles.index') }}"
+                   class="btn btn-sm btn-primary">{{ __('messages.common.back') }}</a>
+            </div>
+        </div>
+    </div>
+@endsection
+@section('content')
+    <div class="post d-flex flex-column-fluid mt-15">
+        <div class="d-flex flex-column flex-lg-row">
+            <div class="flex-lg-row-fluid mb-10 mb-lg-0 me-lg-7 me-xl-10">
+                <div class="row">
+                    <div class="col-12">
+                        @include('layouts.errors')
                     </div>
-                    <h5 class="card-title"> {{__("Create a new role")}}</h5>
                 </div>
-                <div class="card-body">
-                    <form action="{{ route('roles.store') }}" method="POST" class="needs-validation" novalidate>
-                        @csrf
-                        <div class="form-group col-md-4">
-                              <label for="name"  class="text-dark">{{__('Role name')}} <span class="required">*</span></label>
-                            <input name="name" type="text" class="form-control @error('name') is-invalid @enderror" id="name" placeholder="{{ __('Enter role name') }}" value="{{ old('name') }}" required autofocus>
-                    
-                            <input type="hidden" name="guard" value="web">
-                    
-                            @error('name')
-                                <span class="text-red" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
-                        </div>
-                    
-                        <div class="form-group table-responsive">
-                            
-                    
-                            <p class="text-dark"> <b>{{ __('Assign Permissions to role') }}</b> </p>
-                           
-                            <table class="permissionTable table">
-                                <th>
-                                    {{__('Section')}}
-                                </th>
-                    
-                                <th>
-                                    <label>
-                                        <input class="grand_selectall" type="checkbox">
-                                        {{__('Select All') }}
-                                    </label>
-                                </th>
-                    
-                                <th>
-                                    {{__("Available permissions")}}
-                                </th>
-                    
-                    
-                               
-                                <tbody>
-                                   @foreach($custom_permission as $key => $group)
-                                    <tr>
-                                        <td>
-                                            <b>{{ ucfirst($key) }}</b>
-                                        </td>
-                                        <td width="30%">
-                                            <label>
-                                                <input class="selectall" type="checkbox">
-                                                {{__('Select All') }}
-                                            </label>
-                                        </td>
-                                        <td>
-                                            
-                                            @forelse($group as $permission)
-                    
-                                               <label>
-                                                   <input name="permissions[]" class="permissioncheckbox" type="checkbox" value="{{ $permission->id }}">
-                                                   {{$permission->name}} &nbsp;&nbsp;
-                                               </label>
-                    
-                                            @empty
-                                                {{ __("No permission in this group !") }}
-                                            @endforelse
-                    
-                                        </td>
-                    
-                                    </tr>
-                                   @endforeach
-                                </tbody>
-                            </table>
-                    
-                        </div>
-                    
-                        <div class="form-group">
-                            <button type="reset" class="btn btn-danger mr-1"><i class="fa fa-ban"></i> {{ __("Reset")}}</button>
-                            <button type="submit" class="btn btn-primary"><i class="fa fa-check-circle"></i>
-                            {{ __("Create")}}</button>
-                            
-                        </div>
-                    </form>
+                <div class="card">
+                    <div class="card-body p-12">
+                        {!! Form::open(['route' => 'roles.store']) !!}
+                        @include('roles.fields')
+                        {{ Form::close() }}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-  </div>
-@endsection
-@section('script')
-      <script src="{{ url('/js/checkbox.js') }}"></script>
 @endsection

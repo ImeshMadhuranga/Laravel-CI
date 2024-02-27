@@ -26,9 +26,3 @@ RUN docker-php-ext-install mysqli pdo pdo_mysql && docker-php-ext-enable pdo_mys
 
 COPY --from=composer_runner /app/ .
 COPY --from=npm_runner /app/public/ ./public/
-
-RUN mkdir storage/framework
-RUN mkdir storage/framework/cache
-RUN mkdir storage/framework/sessions
-RUN mkdir storage/framework/views
-RUN chmod -R 777 storage/

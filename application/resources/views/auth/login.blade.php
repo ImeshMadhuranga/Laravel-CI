@@ -1,138 +1,75 @@
-@extends('theme.master')
-@section('title', 'Login')
+@extends('layouts.auth')
+@section('title')
+    {{__('messages.common.login')}}
+@endsection
 @section('content')
-@include('admin.message')
-<!-- Signup start-->
-<section id="signup" class="signup-block-main-block">
-    <div class="container">
-        <div class="login-signup">
-            <div class="row no-gutters">
-                <div class="col-lg-6 col-md-6">
-                    <div class="signup-side-block">
-                        <img src="{{ url('images/login/login.png')}}" class="img-fluid" alt="">
-                        <div class="login-img">
-                            <img src="{{ url('/images/login/'.$gsetting->img) }}" class="img-fluid" alt="">
-                        </div>
+    <div class="d-flex flex-column flex-column-fluid align-items-center justify-content-center p-4">
+        <div class="col-12 text-center">
+            <a href="{{ route('home') }}" class="image mb-7 mb-sm-10">
+                <img alt="Logo" src="{{ getLogoUrl() }}" class="img-fluid logo-fix-size">
+            </a>
+        </div>
+        <div class="width-540">
+            @include('flash::message')
+            @include('layouts.errors')
+        </div>
+        <div class="bg-white rounded-15 shadow-md width-540 px-5 px-sm-7 py-10 mx-auto">
+            <h1 class="text-center mb-7">{{__('auth.sign_in')}}</h1>
+            <form method="POST" action="{{ route('login') }}">
+                @csrf
+                <div class="mb-sm-7 mb-4">
+                    <label for="email" class="form-label">
+                        {{ __('messages.user.email').':' }}<span class="required"></span>
+                    </label>
+                    <input name="email" type="email" class="form-control" id="email" aria-describedby="emailHelp" required placeholder=" {{ __('messages.user.email') }}">
+                </div>
+                <div class="mb-sm-7 mb-4">
+                    <div class="d-flex justify-content-between">
+                        <label for="password" class="form-label">{{ __('messages.user.password').':' }}<span
+                                class="required"></span></label>
+                        @if (Route::has('password.request'))
+                            <a href="{{ route('password.request') }}" class="link-info fs-6 text-decoration-none">
+                                {{ __('messages.common.forgot_your_password').'?' }}
+                            </a>
+                        @endif
+                    </div>
+                    <div class="mb-3 position-relative">
+                        <input name="password" type="password" class="form-control" id="password" required placeholder="{{ __('messages.user.password')}}" aria-label="Password" data-toggle="password">
+                        <span class="position-absolute d-flex align-items-center top-0 bottom-0 end-0 me-4 input-icon input-password-hide cursor-pointer text-gray-600">
+                                <i class="bi bi-eye-slash-fill"></i>
+                            </span>
                     </div>
                 </div>
-                <div class="col-lg-6 col-md-6">
-                    <div class="signup-heading">
-                     
-                        {{ $gsetting->text }}
-                        <div class="signup-block">
-                            <form method="POST" class="signup-form" action="{{ route('login') }}">
-                                @csrf
-                             
-                                <div class="form-group">
-                                    <i data-feather="mail"></i>
-                                    <input id="email" type="email" class="form-control{{ $errors->has('email') ? ' is-invalid' : '' }}" placeholder="Enter Your E-Mail"   name="email" value="{{ old('email') }}" required autofocus>
-                                    
-                                    @if ($errors->has('email'))
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $errors->first('email') }}</strong>
-                                        </span>
-                                    @endif
-                                </div>
-
-                                <div class="form-group">
-                                    <i data-feather="lock"></i>
-                                    <input id="password" type="password" class="form-control{{ $errors->has('password') ? ' is-invalid' : '' }}" placeholder="Enter Your Password" name="password"  required>
-                                    <span toggle="#password" class="fa fa-fw fa-eye field-icon toggle-password"></span>
-                                    @if ($errors->has('password'))
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $errors->first('password') }}</strong>
-                                        </span>
-                                    @endif
-                                </div>
-                                <div class="row">
-                                    <div class="col-lg-6 col-md-6 col-6">
-                                        <div class="form-group">                       
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
-
-                                                <label class="form-check-label" for="remember">
-                                                    {{ __('Remember Me') }}
-                                                </label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-6 col-md-6 col-6">
-                                        <div class="forgot-password text-right btm-20"><a href="{{ 'password/reset' }}" title="sign-up">{{ __('ForgotPassword') }}</a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <button type="submit"  class="btn btn-primary">
-                                        {{ __('Login') }}
-                                    </button>
-                                </div>
-                            </form>
-
-                            <div class="social-link btm-10">
-                                <h2><span>Or Sign Up Using</span></h2>
-                                <div class="row">
-                                    @if($gsetting->fb_login_enable == 1)
-                                    <div class="col-lg-2 col-4">
-                                        <a href="{{ url('/auth/facebook') }}" target="_blank" title="facebook" class="social-icon facebook-icon" title="Facebook"><i class="fa fa-facebook"></i></a>
-                                    </div>
-                                    @endif
-
-                                    @if($gsetting->google_login_enable == 1)
-                                    <div class="col-lg-2 col-4">
-                                        <div class="google">
-                                            <a href="{{ url('/auth/google') }}" target="_blank" title="google" class="social-icon google-icon" title="google"><i class="fab fa-google-plus-g"></i></a>
-                                        </div>
-                                    </div>
-                                    @endif
-
-                                    @if($gsetting->amazon_enable == 1)
-                                    <div class="col-lg-2 col-4">
-                                        <div class="signin-link amazon-button">
-                                            <a href="{{ url('/auth/amazon') }}" target="_blank" title="amazon" class="social-icon amazon-icon" title="Amazon"><i class="fab fa-amazon"></i></a>
-                                        </div>
-                                    </div>
-                                    @endif
-
-                                    @if($gsetting->linkedin_enable == 1)
-                                    <div class="col-lg-2 col-4"> 
-                                        <div class="signin-link linkedin-button">
-                                            <a href="{{ url('/auth/linkedin') }}" target="_blank" title="linkedin" class="social-icon linkedin-icon" title="Linkedin"><i class="fab fa-linkedin"></i></a>
-                                        </div>
-                                    </div>
-                                    @endif
-
-                                    @if($gsetting->twitter_enable == 1)
-                                    <div class="col-lg-2 col-4">
-                                        <div class="signin-link twitter-button">
-                                            <a href="{{ url('/auth/twitter') }}" target="_blank" title="twitter" class="social-icon twitter-icon" title="Twitter"><i class="fab fa-twitter"></i></a>
-                                        </div>
-                                    </div>
-                                    @endif
-
-                                    @if($gsetting->gitlab_login_enable == 1)
-                                    <div class="col-lg-2 col-4">
-                                        <div class="signin-link btm-10">
-                                            <a href="{{ url('/auth/gitlab') }}" target="_blank" title="gitlab" class="social-icon gitlab-icon" title="gitlab"><i class="fab fa-gitlab"></i></a>
-                                        </div>
-                                    </div>
-                                    @endif
-                                </div>
-                            </div>
-
-                                
-                            <div class="sign-up text-center">{{ __('Do not have an account') }}?<a href="{{ route('register') }}" title="sign-up"> {{ __('Signup') }}</a>
-                            </div>
-                            <hr>
-                            <div class="signin-link text-center">
-                               {{ __('Bysigningup') }} <a href="{{url('terms_condition')}}" title="Policy">{{ __('Terms&Condition') }} </a>, <a href="{{url('privacy_policy')}}" title="Policy">{{ __('PrivacyPolicy') }}.</a>
-                            </div>
-                          </div>
-                    </div>
+                <div class="mb-sm-7 mb-4 form-check">
+                    <input type="checkbox" class="form-check-input" id="remember_me" >
+                    <label class="form-check-label" for="remember_me">{{ __('messages.common.remember_me') }}</label>
                 </div>
-            </div>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">{{ __('messages.common.login') }}</button>
+                </div>
+                @if (getSuperAdminSettingValue('register_enable'))
+                <div class="d-flex align-items-center mb-10 mt-4">
+                    <span class="text-gray-700 me-2">{{__('messages.common.new_here').'?'}}</span>
+                    <a href="{{ route('register') }}" class="link-info fs-6 text-decoration-none">
+                        {{__('messages.common.create_an_account')}}
+                    </a>
+                </div>
+                @endif
+                <div class="d-grid mt-4">
+                    @if(config('app.google_client_id') && config('app.google_client_secret') && config('app.google_redirect'))
+                        <a href="{{route('social.login','google')}}"
+                           class="btn btn-danger d-flex align-items-center justify-content-center mb-sm-5 mb-4">
+                            <i class="fa-brands fa-google fs-2 me-3"></i>{{__('messages.placeholder.login_via_google')}}
+                        </a>
+                    @endif
+                    @if(config('app.facebook_app_id') && config('app.facebook_app_secret') && config('app.facebook_redirect'))
+                        <a href="{{route('social.login','facebook')}}"
+                           class="btn btn-info d-flex align-items-center justify-content-center">
+                            <i class="fa-brands fa-facebook-f fs-2 me-3"></i>{{__('messages.placeholder.login_via_facebook')}}
+                        </a>
+                    @endif
+                </div>
+            </form>
         </div>
     </div>
-
-</section>
-<!--  Signup end-->
 @endsection

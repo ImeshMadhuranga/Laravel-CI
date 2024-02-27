@@ -1,97 +1,35 @@
-@extends('admin.layouts.master')
-@section('title','All Roles And Permissions')
-@section('maincontent')
-<?php
-$data['heading'] = 'Role & permission';
-$data['title'] = 'Role & permission';
-$data['title1'] = 'Role';
-?>
-@include('admin.layouts.topbar',$data)
-<div class="contentbar">   
-    <div class="row">
-        <div class="col-lg-12">
-          <div class="card dashboard-card m-b-30">
-              <div class="card-header">
-               <h5 class="card-title"> {{__("Roles")}}</h5>
+@extends('layouts.app')
+@section('title')
+    {{__('messages.roles')}}
+@endsection
+@section('content')
+    <div class="post flex-column-fluid">
+            @include('flash::message')
+        <div class="card">
+            <div class="card-header d-flex border-0 pt-6">
+                @include('layouts.search-component')
+                <div class="card-toolbar">
+                    <div class="d-flex justify-content-end">
+                        <a type="button" class="btn btn-primary" href="{{ route('roles.create')}}">
+                                <span class="svg-icon svg-icon-2">
+													<svg xmlns="http://www.w3.org/2000/svg"
+                                                         xmlns:xlink="http://www.w3.org/1999/xlink" width="24px"
+                                                         height="24px" viewBox="0 0 24 24" version="1.1">
+														<rect fill="#000000" x="4" y="11" width="16" height="2" rx="1"/>
+														<rect fill="#000000" opacity="0.5"
+                                                              transform="translate(12.000000, 12.000000) rotate(-270.000000) translate(-12.000000, -12.000000)"
+                                                              x="4" y="11" width="16" height="2" rx="1"/>
+													</svg>
+												</span>
+                            {{__('messages.role.new_role')}}</a>
+                    </div>
                 </div>
-              <div class="widgetbar">
-                @can('role.create')
-                    <a href="{{route('roles.create')}}" class="float-right btn btn-primary-rgba mr-2"><i
-                            class="feather icon-plus mr-2"></i>{{ __('Create a new role') }} </a>
-                @endcan
             </div>
-              <div class="card-body">
-               
-                  <div class="table-responsive">
-                    <table id="roletable" class="table table-borderd responsive " style="width: 100%">
-
-                        <thead>
-                            <th>
-                                #
-                            </th>
-                            <th>
-                                {{__("Role Name")}}
-                            </th>
-                            <th>
-                                {{__('Action')}}
-                            </th>
-                        </thead>
-                    
-                        <tbody>
-                    
-                        </tbody>
-                    
-                    
-                    </table>
-                </div>
+            <div class="card-body pt-0">
+                @include('roles.table')
+                @include('layouts.templates.actions')
             </div>
         </div>
     </div>
-    <!-- End col -->
-</div>
+@endsection
 
-@endsection     
-                        
-@section('script')
-    <script>
-       $(document).ready(function () {
-        var table = $('#roletable').DataTable({
-            lengthChange: false,
-            responsive: true,
-            serverSide: true,
-            autoWidth: true,
-            ajax: '{{ route('roles.index') }}',
-            columns: [{
-                    data: 'DT_RowIndex',
-                    name: 'DT_RowIndex',
-                    searchable: false,
-                    orderable : false
-                },
-                {
-                    data: 'name',
-                    name: 'roles.name'
-                },
-                {
-                    data: 'action',
-                    name: 'action',
-                    searchable: false,
-                    orderable : false
-                }
-            ],
-            dom: 'lBfrtip',
-            buttons: [
-                'copy',
-                'excel',
-                'csv',
-                'pdf',
-                'print'
-            ],
-            order: [
-                [1, 'ASC']
-            ]
-        });
-
-    });
-    </script>
-@endsection    
-            
