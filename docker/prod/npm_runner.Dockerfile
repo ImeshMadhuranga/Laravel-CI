@@ -6,3 +6,4 @@ COPY ./application/package.json .
 COPY ./application/package-lock.json .
 RUN npm ci
 COPY ./application/ .
+RUN npm run prod
